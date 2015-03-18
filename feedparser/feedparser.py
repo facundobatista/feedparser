@@ -536,10 +536,10 @@ class _FeedParserMixin:
         self.incontributor = 0
         self.inpublisher = 0
         self.insource = 0
-        
+
         # georss
         self.ingeometry = 0
-        
+
         self.sourcedata = FeedParserDict()
         self.contentparams = FeedParserDict()
         self._summaryKey = None
@@ -1448,7 +1448,7 @@ class _FeedParserMixin:
         geometry = _parse_georss_line(self.pop('geometry'))
         if geometry:
             self._save_where(geometry)
-    
+
     def _end_georss_polygon(self):
         this = self.pop('geometry')
         geometry = _parse_georss_polygon(this)
@@ -1904,11 +1904,11 @@ class _FeedParserMixin:
             self.psc_chapters_flag = True
             attrsD['chapters'] = []
             self._getContext()['psc_chapters'] = FeedParserDict(attrsD)
-            
+
     def _end_psc_chapters(self):
         # Transition from True -> False
         self.psc_chapters_flag = False
-        
+
     def _start_psc_chapter(self, attrsD):
         if self.psc_chapters_flag:
             start = self._getAttribute(attrsD, 'start')
@@ -2813,7 +2813,7 @@ try:
     del regex
 except NameError:
     pass
-    
+
 def _parse_date_iso8601(dateString):
     '''Parse a variety of ISO-8601-compatible formats like 20040105'''
     m = None
@@ -3055,7 +3055,7 @@ def _parse_date_w3dtf(datestr):
             parts.append('00:00:00z')
     elif len(parts) > 2:
         return None
-    date = parts[0].split('-', 2) 
+    date = parts[0].split('-', 2)
     if not date or len(date[0]) != 4:
         return None
     # Ensure that `date` has 3 elements. Using '1' sets the default
@@ -3396,7 +3396,7 @@ def convert_to_utf8(http_headers, data):
                                  u'application/xml-external-parsed-entity')
     text_content_types = (u'text/xml', u'text/xml-external-parsed-entity')
     if (http_content_type in application_content_types) or \
-       (http_content_type.startswith(u'application/') and 
+       (http_content_type.startswith(u'application/') and
         http_content_type.endswith(u'+xml')):
         acceptable_content_type = 1
         rfc3023_encoding = http_encoding or xml_encoding or u'utf-8'
@@ -3434,17 +3434,22 @@ def convert_to_utf8(http_headers, data):
 
     # determine character encoding
     known_encoding = 0
-    chardet_encoding = None
+    lazy_chardet_encoding = None
     tried_encodings = []
     if chardet:
-        chardet_encoding = chardet.detect(data)['encoding']
-        if not chardet_encoding:
-            chardet_encoding = ''
-        if not isinstance(chardet_encoding, unicode):
-            chardet_encoding = unicode(chardet_encoding, 'ascii', 'ignore')
+        def lazy_chardet_encoding():
+            chardet_encoding = chardet.detect(data)['encoding']
+            if not chardet_encoding:
+                chardet_encoding = ''
+            if not isinstance(chardet_encoding, unicode):
+                chardet_encoding = unicode(chardet_encoding, 'ascii', 'ignore')
+            return chardet_encoding
     # try: HTTP encoding, declared XML encoding, encoding sniffed from BOM
     for proposed_encoding in (rfc3023_encoding, xml_encoding, bom_encoding,
-                              chardet_encoding, u'utf-8', u'windows-1252', u'iso-8859-2'):
+                              lazy_chardet_encoding, u'utf-8', u'windows-1252', u'iso-8859-2'):
+        print "=========== detectando con", proposed_encoding
+        if callable(proposed_encoding):
+            proposed_encoding = proposed_encoding()
         if not proposed_encoding:
             continue
         if proposed_encoding in tried_encodings:
@@ -3583,7 +3588,7 @@ def _parse_georss_polygon(value, swap=True, dims=2):
     # A polygon contains a space separated list of latitude-longitude pairs,
     # with each pair separated by whitespace. There must be at least four
     # pairs, with the last being identical to the first (so a polygon has a
-    # minimum of three actual points). 
+    # minimum of three actual points).
     try:
         ring = list(_gen_georss_coords(value, swap, dims))
     except (IndexError, ValueError):
