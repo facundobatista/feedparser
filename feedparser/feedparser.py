@@ -3447,7 +3447,6 @@ def convert_to_utf8(http_headers, data):
     # try: HTTP encoding, declared XML encoding, encoding sniffed from BOM
     for proposed_encoding in (rfc3023_encoding, xml_encoding, bom_encoding,
                               lazy_chardet_encoding, u'utf-8', u'windows-1252', u'iso-8859-2'):
-        print "=========== detectando con", proposed_encoding
         if callable(proposed_encoding):
             proposed_encoding = proposed_encoding()
         if not proposed_encoding:
